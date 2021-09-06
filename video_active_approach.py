@@ -104,7 +104,7 @@ while True:
                 if hpose == "right" and len(right) < frame_counter:
                     right.append(label)
             
-            frame = cv2.putText(frame, hpose, (fx,fy-5), 1,2,(0,255,255),2)
+                frame = cv2.putText(frame, hpose, (fx,fy-5), 1,2,(0,255,255),2)
         else:
             processing_frame = {'front': [], 'right': [], 'left': []}
             frame_to_save.clear()
