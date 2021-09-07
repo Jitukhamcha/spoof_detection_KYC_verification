@@ -15,7 +15,7 @@ def detect_pose(keypoints):
     mouth = np.array(keypoints[3])
     mid = (nose + mouth)/2
 
-    if lEye[0] != rEye[0]:
+    if (lEye[0]!= rEye[0]):
         slope = (lEye[1]-rEye[1])/(lEye[0]-rEye[0])
         y_incpt= rEye[1]-(slope*rEye[0])
 
@@ -27,19 +27,21 @@ def detect_pose(keypoints):
 
             k3 = distance.euclidean((mid[0], nose[1]), (mid[0], mouth[1]))
             k4 = distance.euclidean((mid[0],nose[1]), (mid[0],int(y)))
-
-            if k2 / k1 <= 0.3:
+            print(k2/k1, k1/k2)
+            if k2 / k1 <= 0.5:
                 hpose = "right"
-            elif k1 / k2 <= 0.3:
+            elif k1 / k2 <= 0.5:
                 hpose = "left"
 
     return hpose
 
 
 cap = cv2.VideoCapture(0)
+# cap.set(3, 720)
+# cap.set(4, 1080)
 width = cap.get(3)
 height = cap.get(4)
-fx, fy , fx1, fy1 = np.array((width*0.3, height*0.2, width*0.6, height*0.8)).astype("int")
+fx, fy , fx1, fy1 = np.array((width*0.3, height*0.2, width*0.7, height*0.8)).astype("int")
 face_frame_size = (fx1-fx)* (fy1-fy)
 
 processing_frame = {'front': [], 'right': [], 'left': []}
@@ -81,8 +83,7 @@ while True:
         frame = cv2.rectangle(frame, (x,y), (x1,y1), (255,0,0), 1)
         face = frame1[y:y1, x:x1]
 
-        print(x , fx*0.8 , y , fy*0.8 , x1 , fx1*1.2 , y1 , fy1*1.2 , (face.size / face_frame_size) , 0.8)
-        if x > fx*0.8 and y > fy*0.8 and x1 < fx1*1.2 and y1 < fy1*1.2 and (face.size / face_frame_size) > 0.8: 
+        if fx < x and fy < y and x1 < fx1 and y1 < fy1 and (face.size / face_frame_size) > 0.5: 
 
             if len(frame_to_save) == 0 and len(front) == frame_counter -1:
                 frame_to_save.append(frame1)
@@ -95,12 +96,12 @@ while True:
             label = np.argmax(prediction)
             value = prediction[0][label]/2
             
-            if value >= 0.8:
+            if value >= 0.5:
                 if len(front) < frame_counter:
                     front.append(label)
                 
                 hpose = detect_pose(keypoints)
-                
+            
                 if hpose == "left" and len(left) < frame_counter:
                     left.append(label)
                 
@@ -121,8 +122,8 @@ while True:
         if max_key == 1:
             predict_txt = "Face is Real"
             txt_color = (0,255,0)
-        elif max_key == 2:
-            predict_txt = "Face is Fake"
+        else:
+            predict_txt = "Unable to define your Liveness"
             txt_color = (0,0,255)
 
         cv2.destroyWindow("frame")
