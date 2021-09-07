@@ -15,22 +15,23 @@ def detect_pose(keypoints):
     mouth = np.array(keypoints[3])
     mid = (nose + mouth)/2
 
-    slope = (lEye[1]-rEye[1])/(lEye[0]-rEye[0])
-    y_incpt= rEye[1]-(slope*rEye[0])
+    if lEye[0] != rEye[0]:
+        slope = (lEye[1]-rEye[1])/(lEye[0]-rEye[0])
+        y_incpt= rEye[1]-(slope*rEye[0])
 
-    y = slope*mid[0] + y_incpt
+        y = slope*mid[0] + y_incpt
 
-    if rEye[0] < mid[0] < lEye[0]:
-        k1 = distance.euclidean(rEye, (mid[0],int(y)))
-        k2 = distance.euclidean((mid[0],int(y)), lEye)
+        if rEye[0] < mid[0] < lEye[0]:
+            k1 = distance.euclidean(rEye, (mid[0],int(y)))
+            k2 = distance.euclidean((mid[0],int(y)), lEye)
 
-        k3 = distance.euclidean((mid[0], nose[1]), (mid[0], mouth[1]))
-        k4 = distance.euclidean((mid[0],nose[1]), (mid[0],int(y)))
+            k3 = distance.euclidean((mid[0], nose[1]), (mid[0], mouth[1]))
+            k4 = distance.euclidean((mid[0],nose[1]), (mid[0],int(y)))
 
-        if k2 / k1 <= 0.4:
-            hpose = "right"
-        elif k1 / k2 <= 0.4:
-            hpose = "left"
+            if k2 / k1 <= 0.3:
+                hpose = "right"
+            elif k1 / k2 <= 0.3:
+                hpose = "left"
 
     return hpose
 
@@ -42,7 +43,7 @@ fx, fy , fx1, fy1 = np.array((width*0.3, height*0.2, width*0.6, height*0.8)).ast
 face_frame_size = (fx1-fx)* (fy1-fy)
 
 processing_frame = {'front': [], 'right': [], 'left': []}
-frame_counter = 5 # number frame to consider for each front, left , right profile prediction
+frame_counter = 2 # number frame to consider for each front, left , right profile prediction
 frame_to_save = []
 
 
@@ -77,8 +78,10 @@ while True:
     else:
         face_box = faces[0].astype("int").tolist()
         (x,y,x1,y1) = face_box
+        frame = cv2.rectangle(frame, (x,y), (x1,y1), (255,0,0), 1)
         face = frame1[y:y1, x:x1]
 
+        print(x , fx*0.8 , y , fy*0.8 , x1 , fx1*1.2 , y1 , fy1*1.2 , (face.size / face_frame_size) , 0.8)
         if x > fx*0.8 and y > fy*0.8 and x1 < fx1*1.2 and y1 < fy1*1.2 and (face.size / face_frame_size) > 0.8: 
 
             if len(frame_to_save) == 0 and len(front) == frame_counter -1:
